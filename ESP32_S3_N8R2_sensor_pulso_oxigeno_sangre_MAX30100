@@ -1,0 +1,63 @@
+/*
+    CONTROL DE PULSO Y OXIGENO EN SANGRE CON MAX30100
+    ORIGINAL LIBRERIA MAX30100Lib
+    MODIFICADO POR : JOSE MARIA MENDEZ RUIZ
+    ABRIL 2025
+    CODIGO LIBRE PARA UTILIZAR COMO QUIERAS
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+*/
+
+#include <Wire.h>
+#include "MAX30100_PulseOximeter.h"
+ 
+#define REPORTING_PERIOD_MS     1000
+#define gpio_SDA 6
+#define gpio_SCL 7
+
+
+PulseOximeter max30; // creamos el objeto max30 para hacer uso del oximetro
+uint32_t tsLastReport = 0;
+ 
+void onBeatDetected()
+{
+    //Serial.println("Latido");  // Esta linea permite indicarnos cuando detecta un latido
+}
+ 
+void setup()
+{
+    Wire.begin(gpio_SDA, gpio_SCL);
+    Serial.begin(9600);
+    if (!max30.begin()) {
+        Serial.println("FALLO No detecto el MAX ");
+        for(;;);
+    } else {
+        Serial.println("OK, MAX detectado");
+    }
+     max30.setIRLedCurrent(MAX30100_LED_CURR_7_6MA);
+ 
+    //max30.setOnBeatDetectedCallback(onBeatDetected); Esta linea permite detectar el latido y llamar a la funcion OnBeatDetected
+}
+ 
+void loop()
+{
+    max30.update();
+    if (millis() - tsLastReport > REPORTING_PERIOD_MS) {
+        Serial.print("Pulso:");
+        Serial.print(max30.getHeartRate());
+        Serial.print("   //  Oxigeno en sangre (bpm/SpO2) :");
+        Serial.print(max30.getSpO2());
+        Serial.println("%"); 
+        tsLastReport = millis();
+    }
+}
